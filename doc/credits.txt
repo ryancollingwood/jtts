@@ -1,5 +1,0 @@
-wall_plate.png from http://opengameart.org/content/wall-cover-4
-brick.png: modified very much from http://opengameart.org/content/grey-brick-wall-2
-scroll.png: http://opengameart.org/content/420-pixel-art-icons-medievalfantasy-rpg
-baddies: from freedoom: http://www.nongnu.org/freedoom/
-door,stairs: from free angband set here: http://www.molotov.nu/?page=graphics
