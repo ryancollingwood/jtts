@@ -1,0 +1,20 @@
+###########################
+#.4..#..#.................#
+#.#..#..#.................#
+#.#x.#....###.............#
+#.##s#....##...########...#
+#..########..2.#3#....#...#
+#..###........##mm.#..#.1.#
+#..#.Q......########..#...#
+#..#.#................#.@.#
+#..mm########........######
+###########################
+?dir=0
+?item1=Scroll("The elders have told me to break the most holy commandment, and head through the forbidden dungeon to the surface.\n\nI know we have no other option, with these demons from above having already killed four of our tribesmen, but I still have my doubts about breaking the sacred rule...")
+?item2=Scroll("If you're reading this, you must have been sent after me. The elders mentioned no others before me, but from their nervousness at the council and the disappearance of our three best warriors... I can only conclude that they were sent before me. So you must have come after me; watch your step!")
+?item3=Key('Red')
+?item4=Scroll("There's a strange humming coming from above, I'm hesitating before heading up these stairs.\nOne of the demons carried a wand much like the one the elders gave me.\nThank the Gods, it didn't seem to be able to use it.")
+?itemm=MonsterModel()
+?itemx=MonsterModel(health=50,wanderRadius=1.,texture=9,speed=0.5,damage=30)
+?itemQ=Door('Red')
+?items=Stairs("You head up the stairway towards the surface.")

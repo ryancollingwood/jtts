@@ -1,0 +1,23 @@
+&&&&&&&&&&&&&&&&&#####
+&...x.x.......&.....##
+&.&...........&.....##
+&s&&&&&&&.....&.....##
+&&&&&&&&&.....&.....##
+#&######&&&&..&.....##
+###....####&..&.#...##
+#&.......#.&..&.######
+#&..&#...#.&3.&.#....#
+#&.1&#...#.&..&####..#
+#&..&#...#.&..&......#
+#&m.&#.@.#.&..&......#
+#&..&######&..&......#
+#&..&&&&&&&&..&......#
+#&....2.m.....&......#
+#&&&&&&&&&&&&&&#######
+?dir=0
+?itemm=MonsterModel()
+?item1=Scroll("The walls a made of metal! How can this be? Who would waste so much metal to cover rock with metal? What would be the purpose? Even stranger, these flickering green lights. They're cold, not like a candle or lantern. They're too small to light the room, I don't understand their purpose.")
+?item2=Scroll("""I'm sitting here, trying to find the motivation to go on.\nI found more runes, and they say we're moving. All these caverns are in a gigantic vessel of some sort, traveling through the aether.\nThey say we fled some catastrophe in our home caves, with the help of the Gods would built us this vessel.""")
+?item3=Scroll("""More runes, about the demons. They're supposed to help us, by keeping the caverns from collapsing. They say they may stop working properly after too long down here, maybe that's what has happened? The Gods left these creatures to care for us, and after all these years, they've gone wrong?""")
+?itemx=MonsterModel(health=50,wanderRadius=1.,texture=9,speed=0.5,damage=30)
+?items=Stairs("You head up the stairway, cautiously.")

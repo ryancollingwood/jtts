@@ -1,0 +1,20 @@
+######################
+#.......m.....#.....m#
+#.............#.....m#
+#..#########..#.#.q.m#
+#.##.......#m.#.######
+#1#........#....#s.x.#
+#.#........#..#####m.#
+#.#........#..#......#
+#@#........#..#.x....#
+############.#######Q#
+############......2..#
+######################
+?dir=0
+?itemm=MonsterModel()
+?itemq=Key('Red')
+?itemQ=Door('Red')
+?item1=Scroll("""I found some runes in the ancient script. I don't know why they'd be this far above the village, no one has come this far before. From what I can tell, they read "LEVEL 253:\n  ENVIRONMENT ACCESS".\nWhat's the meaning of this?\nI'm beginning to worry that the elders may not have told us everything.""")
+?item2=Scroll("""The hum is getting louder, as I get farther from the village. I can't be sure that it's connected to these demons, but still... \n\nI found more of the runes, they were only the words "repair units". I don't know if this means anything.""")
+?itemx=MonsterModel(health=50,wanderRadius=1.,texture=9,speed=0.5,damage=30)
+?items=Stairs("You head up the stairway towards the droning hum.")

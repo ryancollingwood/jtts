@@ -1,0 +1,16 @@
+#&&&&&&&&&&&&&&&&&&&&&
+#&&....&&&&&&&&&&&&&&&
+#&..m....&.m..&&&&&&&&
+#&............&......&
+#&....&..m....&......&
+#&..........m.&.1&...&
+#&......&.....&..&...&
+#&............&..&...&
+#&.T...........m.&...&
+#&.......&&......&.@.&
+#&&&&&&&&&&&&&&&&&&&&&
+?dir=0
+?itemm=MonsterModel()
+?item1=Scroll("I can't go on. The last demon was too quick, it jumped me as I came around the corner. I'm bleeding onto the floor, my hands are shaking and it's becoming hard to write this. The last runes I translated say the controlling demon is in that room...\n\nWhoever is reading this, destroy it! Save us all!")
+?itemT=MonsterModel(health=200,wanderRadius=50,texture=11,speed=2.5,damage=50,finalBoss=True)
+?items=Stairs("You head up the stairway, cautiously.")
