@@ -17,20 +17,45 @@ from itertools import groupby
 from objects import *  # @UnusedWildImport
 from util import TimeLimitedKeyTester
 from models import *  # @UnusedWildImport
+from entities import ENTITY_TEXTURES, ENTITY_TYPE_DIRECTIONAL_SPRITE, ENTITY_TYPE_MAPPING
+import glob
 
+def loadTexture(path):
+    textureSurface = pyglet.resource.image(path)
+    texid = textureSurface.image_data.create_texture(image.Texture)
+    glBindTexture(GL_TEXTURE_2D, texid.id)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    return texid
+
+def loadItemResources(entity, resource_map):
+
+    if entity in resource_map:
+        return resource_map
+
+    path = ENTITY_TEXTURES[entity]
+
+    textures = []
+
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if file.endswith('.png'):
+                textures.append(file)
+
+    print(textures)
 
 def loadTextures():
     textures = []
-    images = ['data/brick.png', 'data/background.png', 'data/shoot.png', 'data/item.png',
-              'data/scroll.png', 'data/key.png', 'data/monster1.png', 'data/door.png',
-              'data/stairs.png', 'data/monster2.png', 'data/metal.png', 'data/repair.png']
-    for path in images:
-        textureSurface = pyglet.resource.image(path)
-        texid = textureSurface.image_data.create_texture(image.Texture)
-        glBindTexture(GL_TEXTURE_2D, texid.id)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        textures.append(texid)
+
+    for entity in ENTITY_TYPE_MAPPING:
+        entity_type = ENTITY_TYPE_MAPPING[entity]
+        path = ENTITY_TEXTURES[entity]
+
+        if entity_type != ENTITY_TYPE_DIRECTIONAL_SPRITE:
+            textures.append(loadTexture(path))
+        else:
+            textures.append(loadTexture(path+".png"))
+            loadItemResources(entity, {})
     return textures
 
 
@@ -77,12 +102,15 @@ class MainWindow(pyglet.window.Window):
             '&|': (textures[10].id, v),
         }
 
+        self.resourceMap = dict()
+
     def loadMap(self, num):
         self.levelNum = num
         map = self.map = world.loadMap('maps/level%02i.txt' % num)
         self.player = Player(map.playerPos, map.playerRot, self.healthUpdate)
         self.monsters = []
         self.bullets = []
+        self.resourceMap = dict()
         self.loadItems()
         self.mapChanged()
         self.healthUpdate(self.player)
@@ -152,6 +180,9 @@ class MainWindow(pyglet.window.Window):
                 glLoadMatrixf(matrix)
                 glBegin(GL_QUADS)
                 z, size = obj.z, obj.size
+                if isinstance(obj, MonsterItem):
+                    angle = radians(z - self.player.rot)
+                    print(obj, angle)
                 glTexCoord2f(0.0, 0.0);
                 glVertex3f(-size, z - size, 0.0)
                 glTexCoord2f(1.0, 0.0);
@@ -218,6 +249,7 @@ class MainWindow(pyglet.window.Window):
 
         self.healthLabel.draw()
 
+        glDisable(GL_TEXTURE_2D)
         glDisable(GL_TEXTURE_2D)
         glDisable(GL_DEPTH_TEST)
 
@@ -369,6 +401,7 @@ class MainWindow(pyglet.window.Window):
         self.objects.sort(key=lambda o: o.texid)
         self.bullets.sort(key=lambda o: o.texid)
         self.monsters.sort(key=lambda o: o.texid)
+
 
     def loadItems(self):
         objs = self.objects = []
