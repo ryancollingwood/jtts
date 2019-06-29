@@ -33,29 +33,33 @@ def loadItemResources(entity, resource_map):
     if entity in resource_map:
         return resource_map
 
+    resource_map[entity] = dict()
+
     path = ENTITY_TEXTURES[entity]
 
-    textures = []
-
     for root, dirs, files in os.walk(path):
+        state = root.replace(path, "").replace("\\", "").replace("/", "")
+        state_resources = dict()
         for file in files:
             if file.endswith('.png'):
-                textures.append(file)
+                state_resources[file.replace(".png", "")] = loadTexture(f"{root}/{file}".replace("\\", "/"))
 
-    print(textures)
+        if len(state_resources) > 0:
+            resource_map[entity][state] = state_resources
+
+    return resource_map
 
 def loadTextures():
-    textures = []
+    textures = dict()
 
     for entity in ENTITY_TYPE_MAPPING:
         entity_type = ENTITY_TYPE_MAPPING[entity]
         path = ENTITY_TEXTURES[entity]
 
         if entity_type != ENTITY_TYPE_DIRECTIONAL_SPRITE:
-            textures.append(loadTexture(path))
+            textures[entity] = loadTexture(path)
         else:
-            textures.append(loadTexture(path+".png"))
-            loadItemResources(entity, {})
+            textures = loadItemResources(entity, textures)
     return textures
 
 
@@ -67,7 +71,7 @@ class MainWindow(pyglet.window.Window):
         self.size = (640, 480,)
         self.push_handlers(keys)
         self.setupGL()
-        textures = self.textures = loadTextures()
+        self.textures = loadTextures()
         self.player = None
 
         self.fps_display = FPSDisplay(self)
@@ -88,6 +92,7 @@ class MainWindow(pyglet.window.Window):
         self.fireClock = TimeLimitedKeyTester(conf.SHOOT_KEYS, conf.SHOOT_DELAY)
 
         h, v = conf.COLORSHIFTS_V
+        textures = self.textures
         self.textureMap = {
             '#-': (textures[0].id, h),
             '#|': (textures[0].id, v),
@@ -411,7 +416,14 @@ class MainWindow(pyglet.window.Window):
             if isinstance(item.model, MonsterModel):
                 item = MonsterItem(item.xy, item.type, item.model, self.map)
                 target = self.monsters
-            item.texid = self.textures[item.findTexture()].id
+            item_textures = item.findTexture()
+
+            if ENTITY_TYPE_MAPPING[item_textures] != ENTITY_TYPE_DIRECTIONAL_SPRITE:
+                item.texid = self.textures[item_textures].id
+            else:
+                # move this to an update methods
+                angle = int(radians(item.z - self.player.rot))
+                item.texid = self.textures[item_textures]["stand"][str(angle)].id
 
             target.append(item)
         self.handleNewItems()
