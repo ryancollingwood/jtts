@@ -214,7 +214,7 @@ class MonsterItem(Item):
       pos=self.xy
       if distSq(pos,player.xy)>self.giveUpDistanceSquared:
         self.pushMood(MOOD_WANDERING)
-        print 'gave up chase'
+        print('gave up chase')
         self.startpos=pos
       points=sorted([point for (point,rel) in self.nearbyCardinal() if (
                                                                         

@@ -7,12 +7,11 @@
 
 import game_config as conf
 import os, random,time
-from string import split
 from math import sin, cos,radians
 import pyglet
 from pyglet.gl import * #@UnusedWildImport
 from pyglet import image
-from pyglet.window import key
+from pyglet.window import key, FPSDisplay
 import world
 from itertools import groupby
 from objects import * #@UnusedWildImport
@@ -39,12 +38,14 @@ def loadTextures():
 
 class MainWindow(pyglet.window.Window):
 	def __init__(self):
-		super(MainWindow,self).__init__(width=640,height=480,visible=False,caption="Journey to the Surface")
+		super(MainWindow,self).__init__(width=640,height=480,visible=False,caption="Journey to the Surface",resizable=False)
 		keys=self.keys=pyglet.window.key.KeyStateHandler()
 		self.push_handlers(keys)
 		self.setupGL()
 		textures=self.textures=loadTextures()
 		self.player=None
+
+		self.fps_display = FPSDisplay(self)
 
 		self.message=None
 
@@ -116,7 +117,8 @@ class MainWindow(pyglet.window.Window):
 	def on_draw(self):
 		textures=self.textures
 		xpos,ypos,rot=self.player.gl()
-		
+
+
 		if self.message:
 			return self.drawMessage()
 			
@@ -165,6 +167,9 @@ class MainWindow(pyglet.window.Window):
 				glPopMatrix()
 
 		glDisable(GL_ALPHA_TEST)
+
+		self.fps_display.draw()
+		
 	
 	def drawMessage(self):
 		w,h=self.size
@@ -220,14 +225,14 @@ class MainWindow(pyglet.window.Window):
 		glColor3ubv(conf.FLOOR_COLOR_V)
 		glVertex2i(x,ystart)
 		glVertex2i(x+w3,ystart)
-		glVertex2i(x+w3,ystart+h3/2)
-		glVertex2i(x,ystart+h3/2)
+		glVertex2i(x+w3,int(ystart+h3/2))
+		glVertex2i(x,int(ystart+h3/2))
 
 		glColor3ubv(conf.CEILING_COLOR_V)
-		glVertex2i(x,ystart+h3/2)
-		glVertex2i(x+w3,ystart+h3/2)
-		glVertex2i(x+w3,ystart+h3)
-		glVertex2i(x,ystart+h3)
+		glVertex2i(x,int(ystart+h3/2))
+		glVertex2i(x+w3,int(ystart+h3/2))
+		glVertex2i(x+w3,int(ystart+h3))
+		glVertex2i(x,int(ystart+h3))
 
 		glEnd()
 		
@@ -266,7 +271,7 @@ class MainWindow(pyglet.window.Window):
 		if sym == key.ESCAPE:
 			self.close()
 		elif sym == key.SPACE:
-			print self.player
+			print(self.player)
 		elif sym in (conf.SHOOT_KEYS):
 			if self.fireClock.update(0.0,self.keys):
 				self.fire()

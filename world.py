@@ -140,4 +140,4 @@ def buildWalls(map):
   return buildArrays(*groups.items())
   
 if __name__=='__main__':
-  print loadMap('maps/level01.txt')
+  print(loadMap('maps/level01.txt'))
