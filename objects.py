@@ -1,15 +1,16 @@
 from math import sin, cos, radians, pi, sqrt
 from random import random, uniform, choice
 from models import *  # @UnusedWildImport
-from util import distSq
+from util import distSq, angle_between, normalise_angle
 import game_config as conf
+import entities
 
 
 class FinalBossKilled(Exception): pass
 
 
 class GameObject(object):
-    def __init__(self, pos, rot):
+    def __init__(self, entity_id, pos, rot):
         x, y = pos
         self.pos = [x, y, rot]
         self.vel = [0.0, 0.0]
@@ -18,6 +19,7 @@ class GameObject(object):
         self.size = 0.1
         self.texid = None
         self.radius = 0
+        self.entity_id = entity_id
 
     def gl(self):
         x, y, rot = self.pos
@@ -30,7 +32,14 @@ class GameObject(object):
         return 'x=%f,y=%f,rot=%f' % self.gl()
 
     def rotate(self, r):
+
         self.pos[2] += r
+
+        # handle over turns
+        if self.pos[2] > 360:
+            self.pos[2] = self.pos[2] % 360
+        elif self.pos[2] < - 360:
+            self.pos[2] = self.pos[2] % -360
 
     def die(self):
         self.alive = False
@@ -89,7 +98,7 @@ class GameObject(object):
 
 class Player(GameObject):
     def __init__(self, pos, rot, damage_callback):
-        GameObject.__init__(self, pos, rot)
+        GameObject.__init__(self, entities.PLAYER, pos, rot)
         self.inventory = []
         self.health = conf.PLAYER_HEALTH
         self.damage_callback = damage_callback
@@ -104,7 +113,7 @@ class Player(GameObject):
 
 class Bullet(GameObject):
     def __init__(self, player, map, speed, texid):
-        GameObject.__init__(self, (player.x, player.y), player.rot)
+        GameObject.__init__(self, entities.SHOOT, (player.x, player.y), player.rot)
         angle = radians(360 - player.rot)
         self.vel = [-sin(angle) * speed, -cos(angle) * speed]
         self.z = 0.4
@@ -114,6 +123,7 @@ class Bullet(GameObject):
         self.damage = 10
 
     def update(self, dt, player):
+
         (vx, vy), pos, map = self.vel, self.pos, self.map
         pos[0] += vx * dt
         pos[1] += vy * dt
@@ -122,8 +132,8 @@ class Bullet(GameObject):
 
 
 class Item(GameObject):
-    def __init__(self, pos, type, extra, model=None, map=None):
-        GameObject.__init__(self, pos, 0)
+    def __init__(self, entity_type, pos, type, extra, model=None, map=None):
+        GameObject.__init__(self, entity_type, pos, 0)
         self.z = 0.3
         self.size = 0.3
         self.radius = 0.5
@@ -162,8 +172,8 @@ MOOD_CHASEIDLE = 3
 
 
 class MonsterItem(Item):
-    def __init__(self, pos, type, model, map):
-        Item.__init__(self, pos, type, None, model)
+    def __init__(self, entity_type, pos, type, model, map):
+        Item.__init__(self, entity_type, pos, type, None, model)
         self.health = model.health
         self.submood = self.mood = MOOD_WANDERING
         self.startpos = pos
@@ -174,6 +184,8 @@ class MonsterItem(Item):
         self.chasePlayerRadiusSquared = 25
         self.minAttackDist = 0.25
         self.giveUpDistanceSquared = 100
+        self.targetPoint = None
+        self.lasttargetPoint = None
 
     def damage(self, amt):
         self.health -= amt
@@ -184,6 +196,7 @@ class MonsterItem(Item):
 
     def update(self, dt, player):
         self.model.update(dt)
+
         mood = self.mood
         if mood == MOOD_WANDERING:
             pos = self.xy
@@ -231,6 +244,13 @@ class MonsterItem(Item):
                 self.targetPoint = points[0]
                 self.pushMood(MOOD_CHASING)
                 self.lastRel = (0.0)
+
+        if self.targetPoint and self.lasttargetPoint != self.targetPoint:
+            change = angle_between(self.pos, self.targetPoint)
+            self.rotate(change)
+            print(self.xy, self.targetPoint, change, self.rot)
+            self.lasttargetPoint = self.targetPoint
+
 
     def pushMood(self, newMood):
         self.submood = self.mood

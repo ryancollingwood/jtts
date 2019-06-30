@@ -19,6 +19,7 @@ from util import TimeLimitedKeyTester
 from models import *  # @UnusedWildImport
 from entities import ENTITY_TEXTURES, ENTITY_TYPE_DIRECTIONAL_SPRITE, ENTITY_TYPE_MAPPING
 import glob
+from util import circle_segment
 
 def loadTexture(path):
     textureSurface = pyglet.resource.image(path)
@@ -60,6 +61,7 @@ def loadTextures():
             textures[entity] = loadTexture(path)
         else:
             textures = loadItemResources(entity, textures)
+
     return textures
 
 
@@ -185,9 +187,6 @@ class MainWindow(pyglet.window.Window):
                 glLoadMatrixf(matrix)
                 glBegin(GL_QUADS)
                 z, size = obj.z, obj.size
-                if isinstance(obj, MonsterItem):
-                    angle = radians(z - self.player.rot)
-                    print(obj, angle)
                 glTexCoord2f(0.0, 0.0);
                 glVertex3f(-size, z - size, 0.0)
                 glTexCoord2f(1.0, 0.0);
@@ -354,7 +353,16 @@ class MainWindow(pyglet.window.Window):
             obj.update(dt, player=player)
             if obj.alive:
                 out.append(obj)  # thrash my GC, please
+
+                if ENTITY_TYPE_MAPPING[obj.entity_id] == ENTITY_TYPE_DIRECTIONAL_SPRITE:
+                    # move this to an update methods
+
+                    side_index = circle_segment(obj.rot)
+
+                    obj.texid = self.textures[obj.entity_id]["stand"][str(side_index)].id
+
         return out
+
 
     def collideBullets(self):
         for monster in self.monsters:
@@ -411,10 +419,10 @@ class MainWindow(pyglet.window.Window):
     def loadItems(self):
         objs = self.objects = []
         for char, pos, extra in self.map.items:
-            item = Item(pos, char, extra, map=self.map)
+            item = Item(3, pos, char, extra, map=self.map)
             target = objs
             if isinstance(item.model, MonsterModel):
-                item = MonsterItem(item.xy, item.type, item.model, self.map)
+                item = MonsterItem(item.model.texture, item.xy, item.type, item.model, self.map)
                 target = self.monsters
             item_textures = item.findTexture()
 
@@ -422,7 +430,7 @@ class MainWindow(pyglet.window.Window):
                 item.texid = self.textures[item_textures].id
             else:
                 # move this to an update methods
-                angle = int(radians(item.z - self.player.rot))
+                angle = int(item.rot)
                 item.texid = self.textures[item_textures]["stand"][str(angle)].id
 
             target.append(item)
