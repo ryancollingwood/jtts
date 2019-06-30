@@ -19,7 +19,7 @@ from util import TimeLimitedKeyTester
 from models import *  # @UnusedWildImport
 from entities import ENTITY_TEXTURES, ENTITY_TYPE_DIRECTIONAL_SPRITE, ENTITY_TYPE_MAPPING
 import glob
-from util import circle_segment
+from util import circle_segment, get_theta, normalise_angle
 
 def loadTexture(path):
     textureSurface = pyglet.resource.image(path)
@@ -307,6 +307,9 @@ class MainWindow(pyglet.window.Window):
             self.close()
         elif sym == key.SPACE:
             print(self.player)
+            for obj in self.monsters:
+                obj.pause = not obj.pause
+
         elif sym in (conf.SHOOT_KEYS):
             if self.fireClock.update(0.0, self.keys):
                 self.fire()
@@ -316,6 +319,7 @@ class MainWindow(pyglet.window.Window):
             self.winGame()
 
     def update(self, dt):
+
         if self.message:
             return  # no processing while messing
         keys = self.keys
@@ -357,7 +361,18 @@ class MainWindow(pyglet.window.Window):
                 if ENTITY_TYPE_MAPPING[obj.entity_id] == ENTITY_TYPE_DIRECTIONAL_SPRITE:
                     # move this to an update methods
 
-                    side_index = circle_segment(obj.rot)
+                    side_index = circle_segment(
+                        # normalise_angle(obj.rot) - normalise_angle(self.player.rot)
+                        normalise_angle(obj.rot)
+                    )
+                    print(
+                        obj.rot,
+                        self.player.rot,
+                        normalise_angle(obj.rot) - normalise_angle(self.player.rot),
+                        side_index
+                    )
+                    #theta = get_theta(self.player.x, self.player.y, abs(obj.rot))
+                    #side_index = circle_segment(theta)
 
                     obj.texid = self.textures[obj.entity_id]["stand"][str(side_index)].id
 

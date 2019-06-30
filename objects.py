@@ -1,7 +1,7 @@
 from math import sin, cos, radians, pi, sqrt
 from random import random, uniform, choice
 from models import *  # @UnusedWildImport
-from util import distSq, angle_between, normalise_angle
+from util import distSq, angle_between, circle_segment
 import game_config as conf
 import entities
 
@@ -13,6 +13,7 @@ class GameObject(object):
     def __init__(self, entity_id, pos, rot):
         x, y = pos
         self.pos = [x, y, rot]
+        print(self.pos)
         self.vel = [0.0, 0.0]
         self.alive = True
         self.z = 0.5
@@ -20,6 +21,7 @@ class GameObject(object):
         self.texid = None
         self.radius = 0
         self.entity_id = entity_id
+        self.pause = True
 
     def gl(self):
         x, y, rot = self.pos
@@ -38,8 +40,8 @@ class GameObject(object):
         # handle over turns
         if self.pos[2] > 360:
             self.pos[2] = self.pos[2] % 360
-        elif self.pos[2] < - 360:
-            self.pos[2] = self.pos[2] % -360
+        elif self.pos[2] < 0:
+            self.pos[2] += 360
 
     def die(self):
         self.alive = False
@@ -195,6 +197,10 @@ class MonsterItem(Item):
                 raise FinalBossKilled()
 
     def update(self, dt, player):
+        if self.pause:
+            return
+
+        self.chasePlayerRadiusSquared = 0
         self.model.update(dt)
 
         mood = self.mood
@@ -247,8 +253,8 @@ class MonsterItem(Item):
 
         if self.targetPoint and self.lasttargetPoint != self.targetPoint:
             change = angle_between(self.pos, self.targetPoint)
+            # self.pos[2] = change
             self.rotate(change)
-            print(self.xy, self.targetPoint, change, self.rot)
             self.lasttargetPoint = self.targetPoint
 
 

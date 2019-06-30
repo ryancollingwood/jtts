@@ -1,4 +1,4 @@
-from math import atan2, pi
+from math import atan2, pi, atan2, degrees
 
 class TimeLimitedKeyTester(object):
     def __init__(self, keys, delay):
@@ -50,15 +50,35 @@ def angle_between(p1, p2):
 def normalise_angle(angle):
     a = angle
 
-    if a > 360:
+    if a >= 360:
         a = a % 360
-    elif a < - 360:
+    elif a <= - 360:
         a = a % -360
 
     if angle < 0:
         a += 360
 
     return a
+
+
+def get_theta(xpos: float, ypos: float, facing):
+    """
+    Calculate the theta, postheta, and side for the NPC
+    :param xpos:
+    :param ypos:
+    :return:
+    """
+    theta = atan2(-ypos, xpos) % (2 * pi)
+    theta = degrees(theta)
+
+    theta -= facing
+
+    if theta < 0:
+        theta += 360
+    elif theta > 360:
+        theta -= 360
+
+    return theta
 
 
 def circle_segment(angle):
