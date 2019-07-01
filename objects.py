@@ -187,7 +187,7 @@ class MonsterItem(Item):
         self.minAttackDist = 0.25
         self.giveUpDistanceSquared = 100
         self.targetPoint = None
-        self.lasttargetPoint = None
+        self.lasttargetPoint = None    
 
     def damage(self, amt):
         self.health -= amt
@@ -195,6 +195,9 @@ class MonsterItem(Item):
             self.alive = False
             if self.model.finalBoss:
                 raise FinalBossKilled()
+
+    def distanceToTarget(self):
+        return sqrt(distSq(self.xy, self.targetPoint))
 
     def update(self, dt, player):
         if self.pause:
@@ -224,17 +227,10 @@ class MonsterItem(Item):
             else:
                 self.lastRel = (0, 0)
         elif mood in (MOOD_MOVING, MOOD_CHASING):
-            pos = self.pos
-            speed = self.speed
-            x, y = self.xy
-            nx, ny = self.targetPoint
-            length = sqrt(distSq(self.xy, self.targetPoint))
+            length = self.distanceToTarget()
             if length < 0.1:  # close enough
                 self.popMood()
                 return
-            dx, dy = (nx - x) / length, (ny - y) / length
-            pos[0] += dx * dt * speed
-            pos[1] += dy * dt * speed
         elif mood == MOOD_CHASEIDLE:
             pos = self.xy
             if distSq(pos, player.xy) > self.giveUpDistanceSquared:

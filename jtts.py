@@ -334,11 +334,7 @@ class MainWindow(pyglet.window.Window):
         move = keys[conf.MOVE_BACKWARDS] - keys[conf.MOVE_FORWARD]
         if move:
             speed = conf.RUN_SPEED if keys[conf.RUN_KEY] else conf.MOVE_SPEED
-            move_scale = dt * speed
-            angle = radians(360 - rot)
-            vx, vy = move * sin(angle) * move_scale, move * cos(angle) * move_scale
-            player.vel = [vx / dt, vy / dt]
-            moved = self.movePlayer(player.x, player.y, vx, vy)  # @UnusedVariable # for later
+            moved = self.updateMove(self.player, dt, speed, move)
 
         self.collideGeneric(self.objects + self.monsters)
         if self.fireClock.update(dt, keys):
@@ -349,6 +345,13 @@ class MainWindow(pyglet.window.Window):
         self.objects = self.updateItemCollection(self.objects, dt)
         self.monsters = self.updateItemCollection(self.monsters, dt)
         self.bullets = self.updateItemCollection(self.bullets, dt)
+
+    def updateMove(self, gameobject, dt, speed, move = -1):
+        move_scale = dt * speed
+        angle = radians(360 - gameobject.rot)
+        vx, vy = move * sin(angle) * move_scale, move * cos(angle) * move_scale
+        gameobject.vel = [vx / dt, vy / dt]
+        return self.moveGameObject(gameobject ,gameobject.x, gameobject.y, vx, vy)  # @UnusedVariable # for later        
 
     def updateItemCollection(self, items, dt):
         out = []
@@ -361,9 +364,13 @@ class MainWindow(pyglet.window.Window):
                 if ENTITY_TYPE_MAPPING[obj.entity_id] == ENTITY_TYPE_DIRECTIONAL_SPRITE:
                     # move this to an update methods
 
+                    if obj.mood in [MOOD_MOVING, MOOD_CHASING]:
+                        if not self.updateMove(obj, dt, obj.speed):
+                            obj.pushMood(MOOD_CHASEIDLE)
+
                     side_index = circle_segment(
-                        # normalise_angle(obj.rot) - normalise_angle(self.player.rot)
-                        normalise_angle(obj.rot)
+                        normalise_angle(obj.rot + self.player.rot)
+                        # normalise_angle(obj.rot)
                     )
                     print(
                         obj.rot,
@@ -401,13 +408,14 @@ class MainWindow(pyglet.window.Window):
             if (ox - x) ** 2 + (oy - y) ** 2 < obj.radius ** 2:
                 obj.touched(self)
 
-    def movePlayer(self, oxpos, oypos, xrel, yrel):
+    def moveGameObject(self, gameobject, oxpos, oypos, xrel, yrel):
         for x, y in ((xrel, yrel), (xrel * 0.5, 0.0), (0, yrel * 0.5)):
-            if self.movePlayerInternal(oxpos, oypos, x, y):
+            if self.moveInternal(gameobject, oxpos, oypos, x, y):
                 return True
         return False
 
-    def movePlayerInternal(self, oxpos, oypos, xrel, yrel):
+
+    def moveInternal(self, gameobject, oxpos, oypos, xrel, yrel):
         nxpos = oxpos + xrel
         nypos = oypos + yrel
 
@@ -418,8 +426,9 @@ class MainWindow(pyglet.window.Window):
                 return False
         except IndexError:
             return False
-        self.player.move(nxpos, nypos)
-        return True
+        gameobject.move(nxpos, nypos)
+        return True        
+
 
     def fire(self):
         self.bullets.append(Bullet(self.player, self.map, conf.BULLET_SPEED, self.textures[2].id))
