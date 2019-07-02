@@ -1,7 +1,7 @@
 from math import sin, cos, radians, pi, sqrt
 from random import random, uniform, choice
 from models import *  # @UnusedWildImport
-from util import distSq, angle_between, circle_segment
+from util import distSq, angle_between, circle_segment, normalise_angle
 import game_config as conf
 import entities
 
@@ -22,6 +22,10 @@ class GameObject(object):
         self.radius = 0
         self.entity_id = entity_id
         self.pause = True
+        self.targetPoint = None
+        self.lasttargetPoint = None
+        self.think_speed = 0.01666666667
+        self.last_think = None
 
     def gl(self):
         x, y, rot = self.pos
@@ -42,6 +46,10 @@ class GameObject(object):
             self.pos[2] = self.pos[2] % 360
         elif self.pos[2] < 0:
             self.pos[2] += 360
+
+    def set_rotation(self, r):
+        a = normalise_angle(r)
+        self.pos[2] = a
 
     def die(self):
         self.alive = False
@@ -186,8 +194,6 @@ class MonsterItem(Item):
         self.chasePlayerRadiusSquared = 25
         self.minAttackDist = 0.25
         self.giveUpDistanceSquared = 100
-        self.targetPoint = None
-        self.lasttargetPoint = None    
 
     def damage(self, amt):
         self.health -= amt
@@ -198,6 +204,9 @@ class MonsterItem(Item):
 
     def distanceToTarget(self):
         return sqrt(distSq(self.xy, self.targetPoint))
+
+    def manhattenDistanceToTarget(self):
+        return abs(self.x - self.targetPoint[0]) + abs(self.y - self.targetPoint[1])
 
     def update(self, dt, player):
         if self.pause:
@@ -227,9 +236,16 @@ class MonsterItem(Item):
             else:
                 self.lastRel = (0, 0)
         elif mood in (MOOD_MOVING, MOOD_CHASING):
-            length = self.distanceToTarget()
+            length = self.distanceToTarget()            
+            manhatten_length = self.manhattenDistanceToTarget()
+
+            #change = angle_between(self.pos, self.targetPoint)
+            #print("length", length, "angle_between", change)
+
             if length < 0.1:  # close enough
+                self.vel = [0,0]
                 self.popMood()
+                self.lasttargetPoint = self.targetPoint
                 return
         elif mood == MOOD_CHASEIDLE:
             pos = self.xy
@@ -250,7 +266,7 @@ class MonsterItem(Item):
         if self.targetPoint and self.lasttargetPoint != self.targetPoint:
             change = angle_between(self.pos, self.targetPoint)
             # self.pos[2] = change
-            self.rotate(change)
+            self.set_rotation(change)
             self.lasttargetPoint = self.targetPoint
 
 

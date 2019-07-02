@@ -317,6 +317,10 @@ class MainWindow(pyglet.window.Window):
             self.nextMap()
         elif sym == key.F3:
             self.winGame()
+        elif sym == key.A:
+            self.monsters[0].rotate(-15)
+        elif sym == key.D:
+            self.monsters[0].rotate(15)
 
     def update(self, dt):
 
@@ -346,7 +350,7 @@ class MainWindow(pyglet.window.Window):
         self.monsters = self.updateItemCollection(self.monsters, dt)
         self.bullets = self.updateItemCollection(self.bullets, dt)
 
-    def updateMove(self, gameobject, dt, speed, move = -1):
+    def updateMove(self, gameobject, dt, speed, move = 1):
         move_scale = dt * speed
         angle = radians(360 - gameobject.rot)
         vx, vy = move * sin(angle) * move_scale, move * cos(angle) * move_scale
@@ -369,14 +373,7 @@ class MainWindow(pyglet.window.Window):
                             obj.pushMood(MOOD_CHASEIDLE)
 
                     side_index = circle_segment(
-                        normalise_angle(obj.rot + self.player.rot)
-                        # normalise_angle(obj.rot)
-                    )
-                    print(
-                        obj.rot,
-                        self.player.rot,
-                        normalise_angle(obj.rot) - normalise_angle(self.player.rot),
-                        side_index
+                        normalise_angle(obj.rot - self.player.rot)
                     )
                     #theta = get_theta(self.player.x, self.player.y, abs(obj.rot))
                     #side_index = circle_segment(theta)
@@ -416,8 +413,25 @@ class MainWindow(pyglet.window.Window):
 
 
     def moveInternal(self, gameobject, oxpos, oypos, xrel, yrel):
-        nxpos = oxpos + xrel
-        nypos = oypos + yrel
+        def correctOverStep(start_pos, rel, target_pos):
+            if rel < 0:
+                if start_pos + rel < target_pos:
+                    print("overstep", start_pos + rel, target_pos)
+                    return target_pos                    
+            elif rel > 0:
+                if start_pos + rel > target_pos:
+                    print("overstep", start_pos + rel, target_pos)
+                    return target_pos
+
+            return start_pos + rel
+
+
+        if gameobject.targetPoint:
+            nxpos = correctOverStep(gameobject.startpos[0], xrel, gameobject.targetPoint[0])
+            nypos = correctOverStep(gameobject.startpos[1], yrel, gameobject.targetPoint[1])
+        else:
+            nxpos = oxpos + xrel    
+            nypos = oypos + yrel
 
         try:
             if nxpos < 0. or nypos < 0.:
