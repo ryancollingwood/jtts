@@ -57,8 +57,21 @@ class GameObject(object):
     def touched(self, engine):
         pass
 
+    def canUpdate(self, dt):
+        if self.last_think is None:
+            self.last_think = dt
+            return True
+        elif dt - self.last_think >= self.think_speed:
+            self.last_think = dt
+            return True
+
+        return False
+
     def update(self, dt, player):
-        pass
+        if not self.canUpdate(dt):
+            return False
+
+        return True
 
     def randomNearby(self, num, minDist=1.0, maxDist=1.0):
         out = []
@@ -133,12 +146,12 @@ class Bullet(GameObject):
         self.damage = 10
 
     def update(self, dt, player):
-
-        (vx, vy), pos, map = self.vel, self.pos, self.map
-        pos[0] += vx * dt
-        pos[1] += vy * dt
-        if self.collideMap(pos[0:2], (1,)):
-            self.die()
+        if super().canUpdate(dt):
+            (vx, vy), pos, map = self.vel, self.pos, self.map
+            pos[0] += vx * dt
+            pos[1] += vy * dt
+            if self.collideMap(pos[0:2], (1,)):
+                self.die()
 
 
 class Item(GameObject):

@@ -346,6 +346,7 @@ class MainWindow(pyglet.window.Window):
 
         if self.bullets:
             self.collideBullets()
+
         self.objects = self.updateItemCollection(self.objects, dt)
         self.monsters = self.updateItemCollection(self.monsters, dt)
         self.bullets = self.updateItemCollection(self.bullets, dt)
@@ -361,12 +362,11 @@ class MainWindow(pyglet.window.Window):
         out = []
         player = self.player
         for obj in items:
-            obj.update(dt, player=player)
-            if obj.alive:
-                out.append(obj)  # thrash my GC, please
+            if obj.update(dt, player=player):                
 
                 if ENTITY_TYPE_MAPPING[obj.entity_id] == ENTITY_TYPE_DIRECTIONAL_SPRITE:
                     # move this to an update methods
+                    # if obj.
 
                     if obj.mood in [MOOD_MOVING, MOOD_CHASING]:
                         if not self.updateMove(obj, dt, obj.speed):
@@ -379,6 +379,9 @@ class MainWindow(pyglet.window.Window):
                     #side_index = circle_segment(theta)
 
                     obj.texid = self.textures[obj.entity_id]["stand"][str(side_index)].id
+
+            if obj.alive:
+                out.append(obj)  # thrash my GC, please
 
         return out
 
